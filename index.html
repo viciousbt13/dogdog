@@ -1,0 +1,509 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>子犬の育て方ガイド</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Quicksand:wght@500;600;700&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg:#FBF6F1; --surface:#FFFFFF;
+    --ink:#2C3A33; --ink-soft:#5E6B63; --ink-faint:#93A097;
+    --primary:#2F6B53; --primary-soft:#E5F0EA;
+    --accent:#E29A33; --accent-soft:#FBEAD2;
+    --warn:#CB6044; --warn-soft:#F8E2D9;
+    --danger:#C13B2E; --danger-soft:#FAE0DB;
+    --line:#ECE2D7;
+    --jp:"Hiragino Maru Gothic ProN","ヒラギノ丸ゴ ProN W4","Hiragino Sans","Yu Gothic UI","Meiryo",sans-serif;
+    --num:"Quicksand",var(--jp);
+  }
+  *{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
+  html{scroll-behavior:smooth}
+  body{
+    background:var(--bg); color:var(--ink); font-family:var(--jp);
+    line-height:1.75; font-size:15.5px; letter-spacing:.01em;
+    max-width:560px; margin:0 auto; padding:0 16px 96px;
+    -webkit-font-smoothing:antialiased;
+  }
+
+  header{padding:26px 4px 6px; text-align:center}
+  .pup{width:58px;height:58px;margin:0 auto 8px;display:block}
+  h1{font-size:23px; font-weight:700; letter-spacing:.02em}
+  .sub{margin-top:6px; color:var(--ink-soft); font-size:13px}
+
+  /* ---- views ---- */
+  .view{display:none; animation:fade .3s ease}
+  .view.on{display:block}
+  @keyframes fade{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:none}}
+  .view > h2.vt{font-size:19px; font-weight:700; margin:18px 2px 4px; display:flex; align-items:center; gap:9px}
+  .view > p.vlead{font-size:13px; color:var(--ink-soft); margin:0 2px 14px; line-height:1.7}
+
+  /* ---- overall progress (timeline tab) ---- */
+  .meter{margin:14px 2px 6px; background:var(--surface); border:1px solid var(--line);
+    border-radius:18px; padding:13px 16px; display:flex; align-items:center; gap:12px}
+  .meter .lbl{font-size:12.5px; color:var(--ink-soft); white-space:nowrap}
+  .bar{flex:1; height:9px; background:var(--primary-soft); border-radius:9px; overflow:hidden}
+  .bar > i{display:block; height:100%; width:0;
+    background:linear-gradient(90deg,var(--primary),#4f9c79); border-radius:9px;
+    transition:width .45s cubic-bezier(.2,.7,.2,1)}
+  .meter .cnt{font-family:var(--num); font-weight:700; font-size:14px; color:var(--primary); white-space:nowrap}
+
+  /* ---- legal callout ---- */
+  .legal{margin:16px 2px 4px; background:var(--warn-soft);
+    border:1px solid #EBC6B8; border-radius:18px; padding:15px 17px 14px}
+  .legal h3{font-size:14px; color:var(--warn); display:flex; align-items:center; gap:7px}
+  .legal ul{list-style:none; margin-top:9px; display:grid; gap:7px}
+  .legal li{font-size:13px; color:#7c4533; line-height:1.65; padding-left:16px; position:relative}
+  .legal li::before{content:"・"; position:absolute; left:0; color:var(--warn)}
+  .legal b{color:var(--warn); font-weight:700}
+
+  /* ---- timeline ---- */
+  .timeline{position:relative; margin-top:24px; padding-left:8px}
+  .timeline::before{content:""; position:absolute; left:25px; top:14px; bottom:30px; width:3px;
+    background:linear-gradient(var(--primary-soft),var(--accent-soft)); border-radius:3px}
+  .phase{position:relative; padding-left:54px; margin-bottom:20px}
+  .node{position:absolute; left:8px; top:6px; width:36px; height:36px; border-radius:50%;
+    background:var(--surface); border:3px solid var(--primary);
+    display:flex; align-items:center; justify-content:center;
+    font-family:var(--num); font-weight:700; font-size:16px; color:var(--primary); z-index:2}
+  .phase[data-tone="now"] .node{border-color:var(--accent); color:var(--accent)}
+  .phase[data-tone="ongoing"] .node{border-color:var(--ink-faint); color:var(--ink-soft)}
+
+  .card{background:var(--surface); border:1px solid var(--line); border-radius:20px;
+    padding:16px 17px 8px; box-shadow:0 2px 14px rgba(47,107,83,.05)}
+  .eyebrow{font-family:var(--num); font-size:11px; font-weight:700; letter-spacing:.14em;
+    text-transform:uppercase; color:var(--accent)}
+  .phase[data-tone="ongoing"] .eyebrow{color:var(--ink-faint)}
+  .card h3{font-size:17px; font-weight:700; margin-top:3px; line-height:1.4}
+  .age{display:inline-block; margin-top:7px; font-size:12px; color:var(--primary);
+    background:var(--primary-soft); padding:3px 11px; border-radius:20px; font-weight:600}
+  .phase[data-tone="now"] .age{color:#a86a16; background:var(--accent-soft)}
+  .note{font-size:12.5px; color:var(--ink-soft); margin:11px 0 4px; line-height:1.7}
+
+  /* ---- checklist ---- */
+  ul.todo{list-style:none; margin:10px 0 6px}
+  ul.todo li{display:flex; gap:11px; align-items:flex-start; padding:9px 4px; cursor:pointer;
+    border-top:1px solid var(--line); user-select:none}
+  ul.todo li:first-child{border-top:none}
+  .box{flex:none; width:21px; height:21px; margin-top:2px; border-radius:7px;
+    border:2px solid #C9D6CE; background:var(--surface); position:relative; transition:.18s}
+  .box::after{content:""; position:absolute; left:6px; top:2px; width:5px; height:10px;
+    border:solid #fff; border-width:0 2.5px 2.5px 0; transform:rotate(45deg) scale(0);
+    transition:transform .18s cubic-bezier(.3,1.4,.5,1)}
+  li.done .box{background:var(--primary); border-color:var(--primary)}
+  li.done .box::after{transform:rotate(45deg) scale(1)}
+  .txt{font-size:13.5px; line-height:1.6; color:var(--ink); transition:.18s}
+  li.done .txt{color:var(--ink-faint); text-decoration:line-through; text-decoration-color:#C9D6CE}
+  .txt b{color:var(--warn); font-weight:700}
+  .txt em{font-style:normal; color:var(--primary); font-weight:600}
+
+  /* ---- generic content cards (other tabs) ---- */
+  .blk{background:var(--surface); border:1px solid var(--line); border-radius:20px;
+    padding:16px 18px; margin-bottom:14px; box-shadow:0 2px 14px rgba(47,107,83,.05)}
+  .blk h3{font-size:15.5px; font-weight:700; display:flex; align-items:center; gap:8px; margin-bottom:4px}
+  .blk h3 .dot{width:8px; height:8px; border-radius:50%; background:var(--accent); flex:none}
+  .blk p{font-size:13.5px; color:var(--ink-soft); line-height:1.75; margin-top:6px}
+  .blk ul{list-style:none; margin-top:8px}
+  .blk ul li{font-size:13.5px; line-height:1.7; color:var(--ink); padding:6px 0 6px 18px;
+    position:relative; border-top:1px solid var(--line)}
+  .blk ul li:first-child{border-top:none}
+  .blk ul li::before{content:""; position:absolute; left:2px; top:13px; width:6px; height:6px;
+    border-radius:50%; background:var(--primary-soft); border:1.5px solid var(--primary)}
+  .blk ul li b{color:var(--warn); font-weight:700}
+  .blk ul li em{font-style:normal; color:var(--primary); font-weight:600}
+
+  /* feed frequency table */
+  .freq{display:grid; gap:0; margin-top:6px}
+  .freq .r{display:flex; justify-content:space-between; gap:12px; padding:9px 0;
+    border-top:1px solid var(--line); font-size:13.5px}
+  .freq .r:first-child{border-top:none}
+  .freq .r dt{color:var(--ink)}
+  .freq .r dd{font-family:var(--num); font-weight:600; color:var(--primary); white-space:nowrap}
+
+  /* danger / warn / watch boxes (health) */
+  .tri{border-radius:20px; padding:15px 17px 13px; margin-bottom:14px; border:1px solid}
+  .tri.d{background:var(--danger-soft); border-color:#EEC3BB}
+  .tri.w{background:var(--accent-soft); border-color:#F0D6A6}
+  .tri.s{background:var(--primary-soft); border-color:#C7E0D2}
+  .tri h3{font-size:15px; font-weight:700; display:flex; align-items:center; gap:8px}
+  .tri.d h3{color:var(--danger)} .tri.w h3{color:#a86a16} .tri.s h3{color:var(--primary)}
+  .tri ul{list-style:none; margin-top:9px}
+  .tri ul li{font-size:13.5px; line-height:1.65; padding:5px 0 5px 17px; position:relative}
+  .tri ul li::before{content:"・"; position:absolute; left:1px}
+  .tri.d ul li::before{color:var(--danger)} .tri.w ul li::before{color:var(--accent)} .tri.s ul li::before{color:var(--primary)}
+  .tri .tail{font-size:12.5px; margin-top:10px; padding-top:10px; border-top:1px dashed rgba(0,0,0,.12); color:var(--ink-soft); line-height:1.65}
+  .tri .tail b{color:inherit; font-weight:700}
+
+  /* cost */
+  .cost{background:var(--surface); border:1px solid var(--line); border-radius:20px; padding:16px 18px; margin-bottom:14px}
+  .cost h3{font-size:14px; margin-bottom:4px}
+  .cost > p{font-size:12.5px; color:var(--ink-soft); margin-bottom:10px}
+  .cost .row{display:flex; justify-content:space-between; gap:12px; padding:8px 0; border-top:1px solid var(--line); font-size:13.5px}
+  .cost .row dt{color:var(--ink-soft)}
+  .cost .row dd{font-family:var(--num); font-weight:600; white-space:nowrap}
+
+  footer{text-align:center; margin-top:20px; font-size:11.5px; color:var(--ink-faint); line-height:1.7}
+
+  /* ---- bottom nav ---- */
+  nav{position:fixed; left:0; right:0; bottom:0; z-index:30; background:rgba(255,255,255,.92);
+    backdrop-filter:blur(10px); -webkit-backdrop-filter:blur(10px);
+    border-top:1px solid var(--line); display:flex; justify-content:center}
+  .navin{display:flex; width:100%; max-width:560px}
+  nav button{flex:1; background:none; border:none; cursor:pointer; padding:8px 2px 9px;
+    display:flex; flex-direction:column; align-items:center; gap:3px; color:var(--ink-faint);
+    font-family:var(--jp); transition:color .2s}
+  nav button .ico{font-size:19px; line-height:1; filter:grayscale(1) opacity(.55); transition:.2s}
+  nav button .nl{font-size:10px; font-weight:600; letter-spacing:.02em}
+  nav button.on{color:var(--primary)}
+  nav button.on .ico{filter:none; transform:translateY(-1px)}
+  nav button.on .nl{color:var(--primary)}
+
+  @media (prefers-reduced-motion:reduce){*{transition:none!important;animation:none!important}}
+</style>
+</head>
+<body>
+
+<header>
+  <svg class="pup" viewBox="0 0 64 64" fill="none" aria-hidden="true">
+    <ellipse cx="32" cy="58" rx="16" ry="3" fill="#ECE2D7"/>
+    <path d="M16 28c-5-2-9 2-8 8 .7 4 4 6 8 5" fill="#E8C9A6"/>
+    <path d="M48 28c5-2 9 2 8 8-.7 4-4 6-8 5" fill="#E8C9A6"/>
+    <ellipse cx="32" cy="36" rx="18" ry="17" fill="#F2D9B8"/>
+    <ellipse cx="32" cy="43" rx="9.5" ry="8" fill="#FBEFDD"/>
+    <circle cx="25" cy="33" r="2.6" fill="#3A2A20"/>
+    <circle cx="39" cy="33" r="2.6" fill="#3A2A20"/>
+    <circle cx="25.8" cy="32.2" r=".8" fill="#fff"/>
+    <circle cx="39.8" cy="32.2" r=".8" fill="#fff"/>
+    <ellipse cx="32" cy="41" rx="3.2" ry="2.4" fill="#3A2A20"/>
+    <path d="M32 43c0 2.4 2 3 3.4 2.2M32 43c0 2.4-2 3-3.4 2.2" stroke="#C58B5E" stroke-width="1.4" stroke-linecap="round"/>
+  </svg>
+  <h1>子犬の育て方ガイド</h1>
+  <p class="sub">下のメニューで切り替えられます</p>
+</header>
+
+<!-- ============ TAB 1: 育て方 ============ -->
+<section class="view on" id="v-guide">
+  <div class="meter">
+    <span class="lbl">進み具合</span>
+    <span class="bar"><i id="barFill"></i></span>
+    <span class="cnt" id="barCnt">0 / 0</span>
+  </div>
+
+  <div class="legal">
+    <h3>⚖️ 法律で決まっていること（忘れると罰金対象）</h3>
+    <ul>
+      <li><b>犬の登録</b>：飼い始めて<b>30日以内</b>（生後91日より幼い子は91日を過ぎてから30日以内）に市区町村へ。一生に1回。</li>
+      <li><b>狂犬病予防注射</b>：生後91日以上で毎年1回（<b>4〜6月</b>）。鑑札・注射済票の装着義務あり。</li>
+      <li><b>マイクロチップ</b>：ショップ／ブリーダーから迎えた子は装着済み。飼い主情報の変更登録を環境省サイトで（オンライン可）。</li>
+    </ul>
+  </div>
+
+  <div class="timeline" id="tl">
+    <section class="phase" data-tone="now">
+      <div class="node">0</div>
+      <div class="card">
+        <span class="eyebrow">Before</span>
+        <h3>お迎え前にそろえる</h3>
+        <span class="age">迎える1〜2週間前</span>
+        <ul class="todo">
+          <li><span class="box"></span><span class="txt">サークル・寝床・トイレトレー・ペットシーツ</span></li>
+          <li><span class="box"></span><span class="txt"><em>迎え先と同じフード</em>と食器</span></li>
+          <li><span class="box"></span><span class="txt">首輪・ハーネス・リード・迷子札</span></li>
+          <li><span class="box"></span><span class="txt">通える<em>動物病院を1つ</em>決めておく</span></li>
+          <li><span class="box"></span><span class="txt">電気コード・誤飲しそうな小物を片づける</span></li>
+        </ul>
+      </div>
+    </section>
+
+    <section class="phase">
+      <div class="node">1</div>
+      <div class="card">
+        <span class="eyebrow">Week 1</span>
+        <h3>お迎え直後はとにかく慣らす</h3>
+        <span class="age">最初の1週間</span>
+        <p class="note">構いすぎず、しっかり寝かせるのが最優先。</p>
+        <ul class="todo">
+          <li><span class="box"></span><span class="txt">静かな寝場所でたっぷり睡眠をとらせる</span></li>
+          <li><span class="box"></span><span class="txt">フードは同じものを継続。変えるなら数日かけて少しずつ</span></li>
+          <li><span class="box"></span><span class="txt">トイレの場所を決め、成功したらすぐ褒める</span></li>
+          <li><span class="box"></span><span class="txt">下痢・嘔吐・食欲を毎日チェック。<b>気になればすぐ受診</b></span></li>
+        </ul>
+      </div>
+    </section>
+
+    <section class="phase">
+      <div class="node">2</div>
+      <div class="card">
+        <span class="eyebrow">Health &amp; Reg</span>
+        <h3>ワクチンと登録の手続き</h3>
+        <span class="age">〜生後3〜4か月ごろ</span>
+        <ul class="todo">
+          <li><span class="box"></span><span class="txt"><em>混合ワクチン</em>：生後6〜8週で1回目→3〜4週ごとに計2〜3回、16週ごろ最終</span></li>
+          <li><span class="box"></span><span class="txt"><b>犬の登録</b>を市区町村へ（30日以内）</span></li>
+          <li><span class="box"></span><span class="txt"><b>マイクロチップ</b>の飼い主情報を変更登録</span></li>
+          <li><span class="box"></span><span class="txt"><b>狂犬病予防注射</b>→鑑札・注射済票を受け取る</span></li>
+          <li><span class="box"></span><span class="txt">ノミ・ダニ・フィラリア予防を相談</span></li>
+        </ul>
+      </div>
+    </section>
+
+    <section class="phase" data-tone="now">
+      <div class="node">3</div>
+      <div class="card">
+        <span class="eyebrow">Key Period</span>
+        <h3>社会化（一生に一度の大事な時期）</h3>
+        <span class="age">生後3〜16週がゴールデンタイム</span>
+        <p class="note">この時期に慣れた子はおだやかに育ちやすい。</p>
+        <ul class="todo">
+          <li><span class="box"></span><span class="txt">いろんな音・人・場所に少しずつ慣らす</span></li>
+          <li><span class="box"></span><span class="txt">ワクチン完了前は<em>抱っこ散歩</em>（<b>地面に下ろさない・他犬に近づけない</b>）</span></li>
+          <li><span class="box"></span><span class="txt">首輪・リードを室内で付ける練習</span></li>
+          <li><span class="box"></span><span class="txt">足ふき・ブラッシング・歯みがきに慣らす</span></li>
+        </ul>
+      </div>
+    </section>
+
+    <section class="phase">
+      <div class="node">4</div>
+      <div class="card">
+        <span class="eyebrow">Walk &amp; Train</span>
+        <h3>散歩デビュー・基本のしつけ</h3>
+        <span class="age">最後の混合ワクチンから2〜3週間後</span>
+        <p class="note">デビューの最終判断はかかりつけ医に相談を。</p>
+        <ul class="todo">
+          <li><span class="box"></span><span class="txt">最初は<em>5〜10分</em>の短い散歩から</span></li>
+          <li><span class="box"></span><span class="txt">トイレ・「おすわり」「待て」を遊び感覚で</span></li>
+          <li><span class="box"></span><span class="txt">甘噛み対策と留守番の練習</span></li>
+        </ul>
+      </div>
+    </section>
+
+    <section class="phase" data-tone="ongoing">
+      <div class="node">∞</div>
+      <div class="card">
+        <span class="eyebrow">Every Year</span>
+        <h3>これから毎年つづけること</h3>
+        <span class="age">成犬になっても</span>
+        <ul class="todo">
+          <li><span class="box"></span><span class="txt"><b>狂犬病予防注射</b>（毎年4〜6月）</span></li>
+          <li><span class="box"></span><span class="txt">混合ワクチンの追加（年1回、獣医と相談）</span></li>
+          <li><span class="box"></span><span class="txt">フィラリア・ノミダニ予防（季節ごと）</span></li>
+          <li><span class="box"></span><span class="txt">避妊・去勢の検討・体重チェック</span></li>
+        </ul>
+      </div>
+    </section>
+  </div>
+
+  <div class="cost">
+    <h3>初年度の費用の目安</h3>
+    <p>病院・地域で変わります。目安として。</p>
+    <div class="row"><dt>混合ワクチン（1回）</dt><dd>3,000〜12,000円</dd></div>
+    <div class="row"><dt>狂犬病予防注射</dt><dd>3,000円ほど</dd></div>
+    <div class="row"><dt>犬の登録手数料</dt><dd>3,000円前後</dd></div>
+    <div class="row"><dt>マイクロチップ情報登録</dt><dd>300円ほど</dd></div>
+  </div>
+</section>
+
+<!-- ============ TAB 2: 餌やり ============ -->
+<section class="view" id="v-food">
+  <h2 class="vt">🍚 餌やり</h2>
+  <p class="vlead">回数は月齢で減らしていきます。量は「フード袋の表示」に従うのが基本です。</p>
+
+  <div class="blk">
+    <h3><span class="dot"></span>1日の回数の目安</h3>
+    <dl class="freq">
+      <div class="r"><dt>生後2〜3か月</dt><dd>3〜4回</dd></div>
+      <div class="r"><dt>3〜6か月</dt><dd>3回</dd></div>
+      <div class="r"><dt>6〜12か月</dt><dd>2〜3回</dd></div>
+      <div class="r"><dt>成犬（1歳〜）</dt><dd>2回</dd></div>
+    </dl>
+    <p>1回量を減らし、回数で分けると消化にやさしく、低血糖も防げます。</p>
+  </div>
+
+  <div class="blk">
+    <h3><span class="dot"></span>あげ方のコツ</h3>
+    <ul>
+      <li><em>量はパッケージの表示</em>（月齢・体重別）を目安に。自己判断で大きく増減しない</li>
+      <li>幼いうちは<em>ぬるま湯でふやかす</em>（熱湯は栄養が壊れる・やけど）。成長に合わせ徐々にドライへ</li>
+      <li>フードを変えるときは<em>1週間ほど</em>かけて少しずつ混ぜる</li>
+      <li>新鮮な水をいつでも飲めるように</li>
+      <li>おやつは1日の総量の<em>1割程度</em>まで。しつけのご褒美に活用</li>
+    </ul>
+  </div>
+
+  <div class="tri d">
+    <h3>🚫 与えてはいけない（中毒）</h3>
+    <ul>
+      <li>チョコレート・ココア</li>
+      <li>玉ねぎ・長ねぎ・にら・にんにく</li>
+      <li>ぶどう・レーズン</li>
+      <li>キシリトール（ガムや一部のお菓子）</li>
+      <li>アルコール・カフェイン（コーヒー・お茶）</li>
+      <li>加熱した鶏の骨（割れて刺さる）</li>
+    </ul>
+    <p class="tail">食べてしまったら<b>すぐ動物病院へ電話</b>。量と時刻を伝える。</p>
+  </div>
+</section>
+
+<!-- ============ TAB 3: しつけ ============ -->
+<section class="view" id="v-train">
+  <h2 class="vt">🚽 トイレ・基本のしつけ</h2>
+  <p class="vlead">合言葉は「成功したらすぐ褒める／失敗は叱らない」。子犬は集中が短いので短く楽しく。</p>
+
+  <div class="blk">
+    <h3><span class="dot"></span>トイレの覚えさせ方</h3>
+    <ul>
+      <li>サークル内にトイレを置き、最初は決まった場所で</li>
+      <li><em>寝起き・食後・遊んだ後・水を飲んだ後</em>にトイレへ誘導</li>
+      <li>そわそわ・くるくる回るのはサイン。すかさず誘導</li>
+      <li>成功したら<em>その場ですぐ褒める</em>（おやつ）</li>
+      <li>失敗は<b>叱らない</b>。黙って片付け、においを残さない（残ると同じ場所で繰り返す）</li>
+    </ul>
+  </div>
+
+  <div class="blk">
+    <h3><span class="dot"></span>暮らしの基本</h3>
+    <ul>
+      <li><em>名前を覚えさせる</em>：呼んで来たら良いことがある、を繰り返す</li>
+      <li><em>甘噛み</em>：噛んだら遊びを中断して無視。噛んでいいおもちゃに置き換える</li>
+      <li><em>ハウス（クレート）</em>に慣らす：安心できる自分の居場所になる</li>
+      <li><em>留守番</em>：短い時間から少しずつ慣らす</li>
+      <li>叱るより褒める。タイミングは「できた瞬間に即」</li>
+    </ul>
+  </div>
+</section>
+
+<!-- ============ TAB 4: 芸 ============ -->
+<section class="view" id="v-trick">
+  <h2 class="vt">🎓 芸の教え方</h2>
+  <p class="vlead">どの芸も流れは同じ。<em>誘導 → できた瞬間に褒める → 言葉を後づけ → ご褒美を減らす</em>。1回5分以内で。</p>
+
+  <div class="blk">
+    <h3><span class="dot"></span>おすわり</h3>
+    <p>鼻先のおやつを頭の上・後ろへゆっくり動かすと、自然にお尻が下がる。座った瞬間に「おすわり」と言って褒める。</p>
+  </div>
+  <div class="blk">
+    <h3><span class="dot"></span>待て</h3>
+    <p>おすわりさせて「待て」。1秒待てたらご褒美。少しずつ時間と距離を伸ばす。動いたらやり直し（叱らない）。</p>
+  </div>
+  <div class="blk">
+    <h3><span class="dot"></span>ふせ</h3>
+    <p>おすわりから、おやつを床のほうへゆっくり下げる。体が伏せたら「ふせ」と言って褒める。</p>
+  </div>
+  <div class="blk">
+    <h3><span class="dot"></span>お手</h3>
+    <p>おすわりの状態で手を差し出す。前足が乗ったら「お手」と言って褒める。最初は軽く前足を支えてもOK。</p>
+  </div>
+  <div class="blk">
+    <h3><span class="dot"></span>おいで（呼び戻し）</h3>
+    <p>少し離れて名前＋「おいで」。来たら<em>大げさに</em>褒める。安全に直結する大事な芸。来たのに叱るのは絶対NG。</p>
+  </div>
+
+  <div class="tri s">
+    <h3>💡 うまくいくコツ</h3>
+    <ul>
+      <li>できない時は難易度を下げる（距離・時間を短く）</li>
+      <li>1コマンド＝1動作。言葉は短く統一</li>
+      <li>うまくいったら終わる。嫌な記憶で終えない</li>
+    </ul>
+  </div>
+</section>
+
+<!-- ============ TAB 5: 体調チェック ============ -->
+<section class="view" id="v-health">
+  <h2 class="vt">🩺 体調チェック</h2>
+  <p class="vlead">子犬は悪化が早いので、迷ったら受診が基本。「いつもと違う」が最大のサインです。</p>
+
+  <div class="tri d">
+    <h3>🚨 すぐ病院（夜間でも電話を）</h3>
+    <ul>
+      <li>ぐったりして反応が鈍い／立てない</li>
+      <li>けいれんしている</li>
+      <li>嘔吐と下痢が同時、または何度も繰り返す</li>
+      <li>便や吐いた物に血（赤・黒いタール状）</li>
+      <li>歯ぐきが白い・青白い（呼吸／循環の異常）</li>
+      <li>ふらつく・ぐったり眠る（低血糖の可能性）</li>
+      <li>中毒物・異物を飲んだ（チョコ・玉ねぎ・ぶどう・キシリトールなど）</li>
+      <li>夏に激しくハァハァし体が熱い（熱中症）</li>
+    </ul>
+    <p class="tail"><b>行く前に病院へ電話</b>。吐いた物・便は写真か現物を持参すると診断が早い。</p>
+  </div>
+
+  <div class="tri w">
+    <h3>⚠️ 早めに受診（その日〜翌日）</h3>
+    <ul>
+      <li>食欲がない・水も飲まない</li>
+      <li>下痢や嘔吐が続く（子犬は半日以上の絶食は避ける）</li>
+      <li>咳・鼻水・目やにが続く（ケンネルコフなど）</li>
+      <li>体重が増えない／急に減った</li>
+      <li>同じ症状が何日も続く</li>
+    </ul>
+  </div>
+
+  <div class="tri s">
+    <h3>👀 おうちで様子見の目安</h3>
+    <ul>
+      <li>1回だけの軟便で、元気も食欲もある</li>
+      <li>→ ぬるま湯でふやかしたフードを少量、暖かくして様子を見る。改善しなければ受診</li>
+    </ul>
+    <p class="tail"><b>脱水チェック</b>：首の後ろの皮膚をつまんで離し、戻りが遅い（2秒以上）／口の中が乾く／目がくぼむ → 受診。</p>
+  </div>
+
+  <div class="blk">
+    <h3><span class="dot"></span>ふだんから見ておく</h3>
+    <ul>
+      <li>健康な歯ぐきの色は<em>ピンク</em>。平常時の色を覚えておく</li>
+      <li>毎日の食欲・うんち・元気を観察</li>
+      <li>こまめに体重を測り、ちゃんと増えているか確認</li>
+    </ul>
+  </div>
+
+  <footer>
+    このガイドは一般的な目安です。実際の判断はかかりつけの動物病院に相談を。<br>
+    手続きの詳細はお住まいの市区町村の案内をご確認ください。
+  </footer>
+</section>
+
+<!-- ============ NAV ============ -->
+<nav>
+  <div class="navin">
+    <button class="on" data-go="v-guide"><span class="ico">🐾</span><span class="nl">育て方</span></button>
+    <button data-go="v-food"><span class="ico">🍚</span><span class="nl">餌やり</span></button>
+    <button data-go="v-train"><span class="ico">🚽</span><span class="nl">しつけ</span></button>
+    <button data-go="v-trick"><span class="ico">🎓</span><span class="nl">芸</span></button>
+    <button data-go="v-health"><span class="ico">🩺</span><span class="nl">体調</span></button>
+  </div>
+</nav>
+
+<script>
+  /* tab switching */
+  var btns = document.querySelectorAll('nav button');
+  var views = document.querySelectorAll('.view');
+  btns.forEach(function(b){
+    b.addEventListener('click', function(){
+      btns.forEach(function(x){x.classList.remove('on');});
+      views.forEach(function(v){v.classList.remove('on');});
+      b.classList.add('on');
+      document.getElementById(b.dataset.go).classList.add('on');
+      window.scrollTo({top:0, behavior:'smooth'});
+    });
+  });
+
+  /* checklist + progress (guide tab) */
+  var items = Array.prototype.slice.call(document.querySelectorAll('#tl ul.todo li'));
+  var fill = document.getElementById('barFill');
+  var cnt = document.getElementById('barCnt');
+  function update(){
+    var done = items.filter(function(li){return li.classList.contains('done');}).length;
+    fill.style.width = (done / items.length * 100) + '%';
+    cnt.textContent = done + ' / ' + items.length;
+  }
+  items.forEach(function(li){
+    li.addEventListener('click', function(){ li.classList.toggle('done'); update(); });
+  });
+  update();
+</script>
+</body>
+</html>
